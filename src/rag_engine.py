@@ -86,13 +86,18 @@ class RAGEngine:
             f"{GROQ_MODEL}"
         )
 
-        print("Lightweight RAG engine ready!")
+        print(
+            "Lightweight RAG engine ready!"
+        )
 
     # ==================================================
     # Create context
     # ==================================================
 
-    def create_context(self, results):
+    def create_context(
+        self,
+        results
+    ):
 
         context_parts = []
 
@@ -106,7 +111,7 @@ class RAGEngine:
 SOURCE {rank}
 
 Similarity Score:
-{result['score']:.4f}
+{result.get('score', 0):.4f}
 
 URL:
 {result.get('url', 'N/A')}
@@ -116,7 +121,9 @@ CONTENT:
 """
             )
 
-        return "\n".join(context_parts)
+        return "\n".join(
+            context_parts
+        )
 
     # ==================================================
     # Generate answer using Groq
@@ -131,15 +138,15 @@ CONTENT:
         system_prompt = """
 You are a grounded question-answering assistant.
 
-Your job is to answer the user's question using ONLY
-the information contained in the provided context.
+Answer the user's question using ONLY the information
+provided in the context.
 
 Rules:
 
 1. Do not use outside knowledge.
-2. Do not invent or hallucinate facts.
+2. Do not invent facts.
 3. If the context does not contain enough information,
-   respond exactly with:
+   say exactly:
 
 "I don't have enough information in the provided context."
 
@@ -157,7 +164,7 @@ CONTEXT:
 """
 
         # ==================================================
-        # Debug information
+        # Groq debug information
         # ==================================================
 
         print("\n" + "=" * 70)
@@ -220,7 +227,8 @@ CONTEXT:
         # ==================================================
 
         answer = (
-            response.choices[0]
+            response
+            .choices[0]
             .message
             .content
         )
@@ -238,7 +246,10 @@ CONTEXT:
     # Ask question
     # ==================================================
 
-    def ask(self, question):
+    def ask(
+        self,
+        question
+    ):
 
         total_start = time.perf_counter()
 
@@ -249,16 +260,20 @@ CONTEXT:
         if not question or not question.strip():
 
             return {
+
                 "answer":
                     "Please provide a question.",
 
                 "sources": [],
 
-                "retrieval_time_ms": 0,
+                "retrieval_time_ms":
+                    0,
 
-                "rerank_time_ms": 0,
+                "rerank_time_ms":
+                    0,
 
-                "generation_time_ms": 0,
+                "generation_time_ms":
+                    0,
 
                 "total_time_ms":
                     (
@@ -296,6 +311,69 @@ CONTEXT:
         ) * 1000
 
         # ==================================================
+        # RETRIEVAL DEBUG
+        # ==================================================
+
+        print("\n" + "=" * 70)
+        print("RETRIEVAL DEBUG")
+        print("=" * 70)
+
+        print(
+            f"Question: {question}"
+        )
+
+        print(
+            f"Results retrieved: "
+            f"{len(results)}"
+        )
+
+        print(
+            f"Similarity threshold: "
+            f"{SIMILARITY_THRESHOLD}"
+        )
+
+        for rank, result in enumerate(
+            results,
+            start=1
+        ):
+
+            score = result.get(
+                "score",
+                0
+            )
+
+            chunk_id = result.get(
+                "chunk_id",
+                "N/A"
+            )
+
+            text = result.get(
+                "text",
+                ""
+            )
+
+            print(
+                f"\nRank {rank}"
+            )
+
+            print(
+                f"Score: "
+                f"{score:.4f}"
+            )
+
+            print(
+                f"Chunk ID: "
+                f"{chunk_id}"
+            )
+
+            print(
+                f"Text preview: "
+                f"{text[:200]}"
+            )
+
+        print("=" * 70)
+
+        # ==================================================
         # Similarity filtering
         # ==================================================
 
@@ -305,10 +383,22 @@ CONTEXT:
 
             for result in results
 
-            if result.get("score", 0)
-            >= SIMILARITY_THRESHOLD
+            if result.get(
+                "score",
+                0
+            ) >= SIMILARITY_THRESHOLD
 
         ]
+
+        # ==================================================
+        # Filtering debug
+        # ==================================================
+
+        print(
+            f"Results after similarity "
+            f"filtering: "
+            f"{len(filtered_results)}"
+        )
 
         # ==================================================
         # No relevant information
@@ -320,6 +410,11 @@ CONTEXT:
                 time.perf_counter()
                 - total_start
             ) * 1000
+
+            print(
+                "No results passed "
+                "the similarity threshold."
+            )
 
             return {
 
@@ -351,6 +446,31 @@ CONTEXT:
         )
 
         # ==================================================
+        # Context debug
+        # ==================================================
+
+        print("\n" + "=" * 70)
+        print("CONTEXT DEBUG")
+        print("=" * 70)
+
+        print(
+            f"Context length: "
+            f"{len(context)} characters"
+        )
+
+        print(
+            f"Context words: "
+            f"{len(context.split())}"
+        )
+
+        print(
+            f"Sources included: "
+            f"{len(filtered_results)}"
+        )
+
+        print("=" * 70)
+
+        # ==================================================
         # Groq generation
         # ==================================================
 
@@ -359,7 +479,9 @@ CONTEXT:
         )
 
         answer = self.generate_answer(
+
             question,
+
             context
         )
 
@@ -398,8 +520,6 @@ CONTEXT:
                         0
                     ),
 
-                # Reranker removed.
-                # Kept as None for API compatibility.
                 "reranker_score":
                     None,
 
@@ -409,6 +529,41 @@ CONTEXT:
                         ""
                     )
             })
+
+        # ==================================================
+        # Final debug
+        # ==================================================
+
+        print("\n" + "=" * 70)
+        print("RAG RESULT")
+        print("=" * 70)
+
+        print(
+            f"Answer: "
+            f"{answer}"
+        )
+
+        print(
+            f"Sources: "
+            f"{len(sources)}"
+        )
+
+        print(
+            f"Retrieval time: "
+            f"{retrieval_time:.2f} ms"
+        )
+
+        print(
+            f"Generation time: "
+            f"{generation_time:.2f} ms"
+        )
+
+        print(
+            f"Total time: "
+            f"{total_time:.2f} ms"
+        )
+
+        print("=" * 70)
 
         # ==================================================
         # Return result
