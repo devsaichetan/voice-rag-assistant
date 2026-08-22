@@ -6,7 +6,6 @@ from src.config import (
     GROQ_API_KEY,
     GROQ_MODEL,
     TOP_K,
-    RERANK_TOP_N,
     SIMILARITY_THRESHOLD
 )
 
@@ -17,20 +16,15 @@ from src.retrieval import (
     retrieve
 )
 
-from src.reranker import (
-    load_reranker,
-    rerank
-)
-
 
 class RAGEngine:
 
     def __init__(self):
 
-        print("Initializing RAG engine...")
+        print("Initializing lightweight RAG engine...")
 
         # ==================================================
-        # Load FAISS
+        # Load FAISS index
         # ==================================================
 
         print("Loading FAISS index...")
@@ -49,30 +43,17 @@ class RAGEngine:
         # Load embedding model
         # ==================================================
 
-        print("Loading embedding model...")
+        print("Loading lightweight embedding model...")
 
-        self.embedding_model = (
-            load_embedding_model()
-        )
-
-        # ==================================================
-        # Load reranker
-        # ==================================================
-
-        print("Loading reranker...")
-
-        self.reranker_model = (
-            load_reranker()
-        )
+        self.embedding_model = load_embedding_model()
 
         # ==================================================
         # Initialize Groq
         # ==================================================
 
         if not GROQ_API_KEY:
-
             raise ValueError(
-                "GROQ_API_KEY is not set in .env"
+                "GROQ_API_KEY is not set."
             )
 
         print("Initializing Groq...")
@@ -91,12 +72,8 @@ class RAGEngine:
         )
 
         print(
-            f"Top-K: {TOP_K}"
-        )
-
-        print(
-            f"Reranker Top-N: "
-            f"{RERANK_TOP_N}"
+            f"Top-K: "
+            f"{TOP_K}"
         )
 
         print(
@@ -109,16 +86,13 @@ class RAGEngine:
             f"{GROQ_MODEL}"
         )
 
-        print("RAG engine ready!")
+        print("Lightweight RAG engine ready!")
 
     # ==================================================
     # Create context
     # ==================================================
 
-    def create_context(
-        self,
-        results
-    ):
+    def create_context(self, results):
 
         context_parts = []
 
@@ -134,20 +108,15 @@ SOURCE {rank}
 Similarity Score:
 {result['score']:.4f}
 
-Reranker Score:
-{result['reranker_score']:.4f}
-
 URL:
-{result['url']}
+{result.get('url', 'N/A')}
 
 CONTENT:
-{result['text']}
+{result.get('text', '')}
 """
             )
 
-        return "\n".join(
-            context_parts
-        )
+        return "\n".join(context_parts)
 
     # ==================================================
     # Generate answer using Groq
@@ -188,7 +157,7 @@ CONTEXT:
 """
 
         # ==================================================
-        # Groq request debug
+        # Debug information
         # ==================================================
 
         print("\n" + "=" * 70)
@@ -269,12 +238,36 @@ CONTEXT:
     # Ask question
     # ==================================================
 
-    def ask(
-        self,
-        question
-    ):
+    def ask(self, question):
 
         total_start = time.perf_counter()
+
+        # ==================================================
+        # Validate question
+        # ==================================================
+
+        if not question or not question.strip():
+
+            return {
+                "answer":
+                    "Please provide a question.",
+
+                "sources": [],
+
+                "retrieval_time_ms": 0,
+
+                "rerank_time_ms": 0,
+
+                "generation_time_ms": 0,
+
+                "total_time_ms":
+                    (
+                        time.perf_counter()
+                        - total_start
+                    ) * 1000
+            }
+
+        question = question.strip()
 
         # ==================================================
         # FAISS retrieval
@@ -285,10 +278,15 @@ CONTEXT:
         )
 
         results, _ = retrieve(
+
             question,
+
             self.embedding_model,
+
             self.index,
+
             self.metadata,
+
             TOP_K
         )
 
@@ -298,34 +296,18 @@ CONTEXT:
         ) * 1000
 
         # ==================================================
-        # Reranking
-        # ==================================================
-
-        rerank_start = (
-            time.perf_counter()
-        )
-
-        reranked_results = rerank(
-            question,
-            results,
-            self.reranker_model,
-            RERANK_TOP_N
-        )
-
-        rerank_time = (
-            time.perf_counter()
-            - rerank_start
-        ) * 1000
-
-        # ==================================================
         # Similarity filtering
         # ==================================================
 
         filtered_results = [
+
             result
-            for result in reranked_results
-            if result["score"]
+
+            for result in results
+
+            if result.get("score", 0)
             >= SIMILARITY_THRESHOLD
+
         ]
 
         # ==================================================
@@ -351,7 +333,7 @@ CONTEXT:
                     retrieval_time,
 
                 "rerank_time_ms":
-                    rerank_time,
+                    0,
 
                 "generation_time_ms":
                     0,
@@ -406,21 +388,30 @@ CONTEXT:
             sources.append({
 
                 "chunk_id":
-                    result["chunk_id"],
+                    result.get(
+                        "chunk_id"
+                    ),
 
                 "score":
-                    result["score"],
+                    result.get(
+                        "score",
+                        0
+                    ),
 
+                # Reranker removed.
+                # Kept as None for API compatibility.
                 "reranker_score":
-                    result["reranker_score"],
+                    None,
 
                 "url":
-                    result["url"]
-
+                    result.get(
+                        "url",
+                        ""
+                    )
             })
 
         # ==================================================
-        # Return structured result
+        # Return result
         # ==================================================
 
         return {
@@ -435,12 +426,11 @@ CONTEXT:
                 retrieval_time,
 
             "rerank_time_ms":
-                rerank_time,
+                0,
 
             "generation_time_ms":
                 generation_time,
 
             "total_time_ms":
                 total_time
-
         }
