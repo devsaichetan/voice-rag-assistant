@@ -89,10 +89,12 @@ class QuestionRequest(BaseModel):
 @app.get("/")
 def root():
 
-    return {
-        "message": "Voice RAG API is running",
-        "status": "ok"
-    }
+    return FileResponse(
+        os.path.join(
+            TEMPLATES_DIR,
+            "index.html"
+        )
+    )
 
 
 # ==================================================
