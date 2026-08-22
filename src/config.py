@@ -30,8 +30,7 @@ PROCESSED_DATA_DIR = os.path.join(
 
 INDEX_DIR = os.path.join(
     BASE_DIR,
-    "indexes",
-    "lite"
+    "indexes"
 )
 
 
