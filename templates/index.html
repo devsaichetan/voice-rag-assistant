@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice RAG Assistant — Intelligent Knowledge Base</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <!-- App Container -->
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-area">
+                    <span class="logo-icon">🎙️</span>
+                    <span class="logo-text">Voice <span class="accent-text">RAG</span></span>
+                </div>
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    AI Knowledge Assistant
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="app-main">
+            
+            <!-- Hero / Intro -->
+            <section class="hero-section">
+                <h1>Voice RAG Assistant</h1>
+                <p class="subtitle">Ask questions naturally. Get grounded answers from your private knowledge base.</p>
+            </section>
+
+            <!-- Recording Hub -->
+            <section class="voice-hub">
+                <div class="hub-card">
+                    <!-- Interactive Mic Sphere -->
+                    <div class="mic-workspace">
+                        <button id="recordButton" class="mic-button" aria-label="Start recording question">
+                            <svg class="mic-icon" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+                            </svg>
+                            <svg class="stop-icon hidden" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M6 19h12V5H6v14z"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Glowing Rings -->
+                        <div class="pulse-ring ring-1"></div>
+                        <div class="pulse-ring ring-2"></div>
+                    </div>
+
+                    <!-- Status Display -->
+                    <div class="status-box">
+                        <span id="recordStatus" class="status-text">Tap to speak</span>
+                        <span id="recordDuration" class="duration-counter hidden">00:00</span>
+                    </div>
+
+                    <!-- CSS Audio Waveform -->
+                    <div id="recordingWaveform" class="waveform-container hidden">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Text Option / Examples -->
+            <section class="query-alternatives">
+                <!-- Text Form -->
+                <form id="textQueryForm" class="text-query-form">
+                    <div class="input-wrapper">
+                        <input type="text" id="textQuestionInput" placeholder="Or type your question here..." required>
+                        <button type="submit" class="send-btn">
+                            <span>Ask</span>
+                            <svg class="send-icon" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Example Queries -->
+                <div class="example-queries">
+                    <span class="label">Try asking:</span>
+                    <div class="example-chips">
+                        <button type="button" class="chip">What is the Eiffel Tower?</button>
+                        <button type="button" class="chip">What is the capital of France?</button>
+                        <button type="button" class="chip">What is machine learning?</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading Pipeline States -->
+            <div id="pipelineContainer" class="pipeline-card hidden">
+                <h3>Pipeline Processing</h3>
+                <div class="pipeline-flow">
+                    <div class="pipeline-step" id="step-speech">
+                        <div class="step-icon-wrapper">🎤</div>
+                        <div class="step-info">
+                            <span class="step-title">Speech Input</span>
+                            <span class="step-status">Waiting</span>
+                        </div>
+                    </div>
+                    <div class="pipeline-connector"></div>
+                    <div class="pipeline-step" id="step-stt">
+                        <div class="step-icon-wrapper">📝</div>
+                        <div class="step-info">
+                            <span class="step-title">STT Transcription</span>
+                            <span class="step-status">Waiting</span>
+                        </div>
+                    </div>
+                    <div class="pipeline-connector"></div>
+                    <div class="pipeline-step" id="step-retrieval">
+                        <div class="step-icon-wrapper">🔎</div>
+                        <div class="step-info">
+                            <span class="step-title">FAISS Vector Search</span>
+                            <span class="step-status">Waiting</span>
+                        </div>
+                    </div>
+                    <div class="pipeline-connector"></div>
+                    <div class="pipeline-step" id="step-rerank">
+                        <div class="step-icon-wrapper">🎯</div>
+                        <div class="step-info">
+                            <span class="step-title">Cross-Reranking</span>
+                            <span class="step-status">Waiting</span>
+                        </div>
+                    </div>
+                    <div class="pipeline-connector"></div>
+                    <div class="pipeline-step" id="step-gemini">
+                        <div class="step-icon-wrapper">🤖</div>
+                        <div class="step-info">
+                            <span class="step-title">Gemini Synthesis</span>
+                            <span class="step-status">Waiting</span>
+                        </div>
+                    </div>
+                    <div class="pipeline-connector"></div>
+                    <div class="pipeline-step" id="step-tts">
+                        <div class="step-icon-wrapper">🔊</div>
+                        <div class="step-info">
+                            <span class="step-title">TTS Synthesis</span>
+                            <span class="step-status">Waiting</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Console -->
+            <div id="errorConsole" class="error-console hidden">
+                <div class="error-icon">⚠️</div>
+                <div class="error-message-box">
+                    <span class="error-title">Execution Error</span>
+                    <p id="errorMessage" class="error-text">Something went wrong while executing your request.</p>
+                </div>
+            </div>
+
+            <!-- Results Dashboard -->
+            <section id="resultsDashboard" class="results-dashboard hidden">
+                
+                <!-- Transcription -->
+                <div class="results-card user-question-card">
+                    <div class="card-header">
+                        <span class="card-tag">User Question</span>
+                    </div>
+                    <p id="resultTranscript" class="transcript-text"></p>
+                </div>
+
+                <!-- Answer Content -->
+                <div class="results-card ai-answer-card">
+                    <div class="card-header">
+                        <span class="card-tag primary">Grounded Answer</span>
+                        <div class="grounding-badge">
+                            <svg viewBox="0 0 24 24" class="check-icon"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Grounded response
+                        </div>
+                    </div>
+                    <div class="answer-content">
+                        <p id="resultAnswer"></p>
+                    </div>
+                </div>
+
+                <!-- Audio Output -->
+                <div id="audioOutputCard" class="results-card audio-player-card">
+                    <div class="card-header">
+                        <span class="card-tag">Voice Response</span>
+                    </div>
+                    
+                    <!-- Audio Object -->
+                    <audio id="answerAudio"></audio>
+
+                    <!-- Custom Player Controls -->
+                    <div class="custom-audio-player">
+                        <button id="customPlayPauseBtn" class="player-btn play-pause-btn" aria-label="Play voice response">
+                            <!-- Play Icon -->
+                            <svg class="play-icon" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M8 5v14l11-7z"/>
+                            </svg>
+                            <!-- Pause Icon -->
+                            <svg class="pause-icon hidden" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                            </svg>
+                        </button>
+                        
+                        <div class="player-timeline">
+                            <span id="currentTime" class="time-label">0:00</span>
+                            <div id="progressContainer" class="progress-track">
+                                <div id="progressBar" class="progress-fill"></div>
+                            </div>
+                            <span id="durationTime" class="time-label">0:00</span>
+                        </div>
+                        
+                        <div class="volume-control">
+                            <button id="muteBtn" class="player-btn mute-btn" aria-label="Mute audio">
+                                <svg class="volume-high-icon" viewBox="0 0 24 24">
+                                    <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                                </svg>
+                                <svg class="volume-muted-icon hidden" viewBox="0 0 24 24">
+                                    <path fill="currentColor" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                                </svg>
+                            </button>
+                            <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reference Sources -->
+                <div class="results-card sources-card">
+                    <div class="card-header">
+                        <span class="card-tag">Retrieved Sources</span>
+                    </div>
+                    <div id="sourcesContainer" class="sources-list">
+                        <!-- Filled dynamically -->
+                    </div>
+                </div>
+
+                <!-- Performance latency grid -->
+                <div class="results-card stats-card">
+                    <div class="card-header">
+                        <span class="card-tag">Pipeline Performance</span>
+                    </div>
+                    <div id="performanceContainer" class="stats-grid">
+                        <!-- Filled dynamically -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Technical Architecture / How it works -->
+            <section class="tech-section">
+                <h2>System Architecture</h2>
+                <p class="section-desc">The Voice RAG pipeline integrates advanced transcription, vector matching, context reranking, large language model reasoning, and vocal synthesis.</p>
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <div class="tech-step-badge">1</div>
+                        <h3>Sarvam AI STT</h3>
+                        <p>Processes speech files into plain text transcripts.</p>
+                    </div>
+                    <div class="tech-card">
+                        <div class="tech-step-badge">2</div>
+                        <h3>FAISS Vector Search</h3>
+                        <p>Matches transcription embeddings against chunks index.</p>
+                    </div>
+                    <div class="tech-card">
+                        <div class="tech-step-badge">3</div>
+                        <h3>Sentence Transformers</h3>
+                        <p>Generates high-dimensional semantic embeddings.</p>
+                    </div>
+                    <div class="tech-card">
+                        <div class="tech-step-badge">4</div>
+                        <h3>Cross-Encoder Reranker</h3>
+                        <p>Reranks raw FAISS hits using deep similarity scores.</p>
+                    </div>
+                    <div class="tech-card">
+                        <div class="tech-step-badge">5</div>
+                        <h3>Google Gemini</h3>
+                        <p>Synthesizes grounded context into direct answers.</p>
+                    </div>
+                    <div class="tech-card">
+                        <div class="tech-step-badge">6</div>
+                        <h3>Sarvam AI TTS</h3>
+                        <p>Converts synthetic answer text into vocal responses.</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+        
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>© 2026 Voice RAG Assistant. Portfolio Demonstration project.</p>
+        </footer>
+    </div>
+
+    <!-- Script -->
+    <script src="/static/script.js"></script>
+</body>
+
+</html>
