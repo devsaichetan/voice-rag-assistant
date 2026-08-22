@@ -49,10 +49,8 @@ DATASET_SPLIT = "train"
 # Retrieval
 # ==================================================
 
-TOP_K = 20
-
-RERANK_TOP_N = 5
-
+TOP_K = 5
+RERANK_TOP_N = 0
 SIMILARITY_THRESHOLD = 0.65
 
 
