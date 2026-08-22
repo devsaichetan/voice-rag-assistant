@@ -30,7 +30,8 @@ PROCESSED_DATA_DIR = os.path.join(
 
 INDEX_DIR = os.path.join(
     BASE_DIR,
-    "indexes"
+    "indexes",
+    "lite"
 )
 
 
@@ -60,7 +61,12 @@ SIMILARITY_THRESHOLD = 0.65
 # Embedding model
 # ==================================================
 
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+# EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL = os.path.join(
+    BASE_DIR,
+    "models",
+    "paraphrase-MiniLM-L3-v2"
+)
 
 
 # ==================================================
