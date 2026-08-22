@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 # ==================================================
 # Project paths
 # ==================================================
@@ -50,15 +51,17 @@ DATASET_SPLIT = "train"
 # ==================================================
 
 TOP_K = 5
+
+# Reranker removed to reduce RAM usage
 RERANK_TOP_N = 0
+
 SIMILARITY_THRESHOLD = 0.65
 
 
 # ==================================================
-# Embedding model
+# Lightweight ONNX Embedding Model
 # ==================================================
 
-# EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 EMBEDDING_MODEL = os.path.join(
     BASE_DIR,
     "models",
@@ -67,11 +70,17 @@ EMBEDDING_MODEL = os.path.join(
 
 
 # ==================================================
-# Speech-to-Text
+# Speech-to-Text / Sarvam
 # ==================================================
 
 STT_API_KEY = os.getenv(
     "STT_API_KEY"
+)
+
+# Also support SARVAM_API_KEY if that is
+# the variable currently used in Render.
+SARVAM_API_KEY = os.getenv(
+    "SARVAM_API_KEY"
 )
 
 
@@ -85,15 +94,13 @@ GROQ_API_KEY = os.getenv(
 
 GROQ_MODEL = os.getenv(
     "GROQ_MODEL",
-    "llama-3.3-70b-versatile"
+    "openai/gpt-oss-120b"
 )
 
 
 # ==================================================
 # Legacy Gemini configuration
 # ==================================================
-# Keep these for now so we can switch back to Gemini
-# easily if needed.
 
 GEMINI_API_KEY = os.getenv(
     "GEMINI_API_KEY"
