@@ -7,4 +7,6 @@ faiss-cpu
 numpy
 onnxruntime
 transformers
+huggingface-hub
 python-multipart
+jinja2
