@@ -55,7 +55,7 @@ TOP_K = 5
 # Reranker removed to reduce RAM usage
 RERANK_TOP_N = 0
 
-SIMILARITY_THRESHOLD = 0.65
+SIMILARITY_THRESHOLD = 0.25
 
 
 # ==================================================
